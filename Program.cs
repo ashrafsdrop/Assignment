@@ -130,6 +130,7 @@ public sealed class MainForm : Form
 	private void RefreshFleet()
 	{
 		// Rebuild the grid from the current fleet and refresh the summary footer.
+		var selectedCarId = _fleetGrid.CurrentRow?.Cells["CarId"].Value?.ToString();
 		var cars = _fleetManager.Cars.AsEnumerable();
 		if (_statusFilter.SelectedIndex > 0 && Enum.TryParse<OperationalStatus>(_statusFilter.Text, out var status))
 			cars = _fleetManager.GetCarsByStatus(status);
@@ -137,6 +138,18 @@ public sealed class MainForm : Form
 		{
 			car.CarId, car.ModelName, car.OperationalRangeKm, car.BatteryLevelPercent, car.Priority, car.Status
 		}).ToList();
+		if (!string.IsNullOrEmpty(selectedCarId))
+		{
+			foreach (DataGridViewRow row in _fleetGrid.Rows)
+			{
+				if (row.Cells["CarId"].Value?.ToString() == selectedCarId)
+				{
+					row.Selected = true;
+					_fleetGrid.CurrentCell = row.Cells[0];
+					break;
+				}
+			}
+		}
 		var summary = _fleetManager.GetFleetSummary();
 		_summaryLabel.Text = $"Cars: {summary.TotalCars}    Average battery: {summary.AverageBatteryPercent:0.#}%    Average range: {summary.AverageRangeKm:0.#} km    Low battery: {summary.LowBatteryCount}";
 		ShowSelectedLog();
@@ -145,11 +158,21 @@ public sealed class MainForm : Form
 	private void ShowSelectedLog()
 	{
 		// Show log entries for the car currently selected in the fleet grid.
-		_logList.Items.Clear();
-		if (SelectedCar != null)
+		var selectedCar = SelectedCar;
+		if (selectedCar != null)
 		{
-			_logList.Items.Add($"Operational log: {SelectedCar.CarId}");
-			_logList.Items.AddRange(SelectedCar.OperationalLog.ToArray());
+			_modelInput.Text = selectedCar.ModelName;
+			_rangeInput.Value = (decimal)selectedCar.OperationalRangeKm;
+			_batteryInput.Value = (decimal)selectedCar.BatteryLevelPercent;
+			_priorityInput.SelectedItem = selectedCar.Priority;
+			_statusInput.SelectedItem = selectedCar.Status;
+			_logList.Items.Clear();
+			_logList.Items.Add($"Operational log: {selectedCar.CarId}");
+			_logList.Items.AddRange(selectedCar.OperationalLog.ToArray());
+		}
+		else
+		{
+			_logList.Items.Clear();
 		}
 	}
 
