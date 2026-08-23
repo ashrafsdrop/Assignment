@@ -1,49 +1,87 @@
-# Tesla Autonomous Fleet — Self-Driving Car Simulation (C# / .NET 8 WinForms)
+# Tesla Autonomous Fleet — Self-Driving Car Simulation
 
-A prototype simulation and control-panel application for managing autonomous
-vehicle statuses, simulating driving incidents, and delegating real-time
-alerts to "mission control."
+A .NET WinForms application that simulates an autonomous vehicle fleet, tracks vehicle status and battery health, raises mission-control alerts, and supports user-driven fleet management through a desktop control panel.
 
-## How to run
+## Overview
 
-Requires the **.NET 8 SDK** with the Windows Desktop workload (WinForms), on Windows.
+This project models a self-driving car fleet where each vehicle is represented as a validated domain entity and managed by a central fleet controller. It includes:
+
+- vehicle registration, update, and removal
+- battery and range monitoring
+- operational status tracking
+- incident simulation for critical failures
+- alert dispatching to a control-room observer
+- a GUI dashboard for fleet overview and operational logs
+
+## Features
+
+- Fleet dashboard with a grid of vehicles and live filtering by operational status
+- Vehicle validation using DataAnnotations on the model
+- Real-time alert events via delegates and event handlers
+- Incident handling for battery, navigation, and unauthorized override scenarios
+- Mission and fleet summary queries using LINQ
+- Demo seed data for testing and presentation
+
+## Requirements
+
+- .NET SDK 10 or later
+- Windows environment for WinForms
+
+## Run the app
 
 ```bash
-cd SelfDrivingCarSimulation
 dotnet run
 ```
 
-The app opens with four demo cars pre-loaded (`TX-001`..`TX-004`).
+The app starts with a set of demo cars preloaded, including `TX-001` through `TX-004`.
 
-> Note: WinForms is Windows-only. If you need to run this on macOS/Linux,
-> port `UI/MainForm.cs` and `UI/CarEditForm.cs` to Avalonia UI or a console
-> menu — every other layer (`Models`, `Exceptions`, `Events`, `Services`) is
-> plain, platform-independent C# and can be reused as-is.
+## Project structure
 
-## Project layout & design notes
+- [Program.cs](Program.cs) — WinForms UI and app entry point
+- [Car.cs](Car.cs) — vehicle entity, validation logic, and operational log
+- [FleetManager.cs](FleetManager.cs) — fleet control, queries, and incident simulation
+- [AlertSystem.cs](AlertSystem.cs) — alert publishing and monitoring system
+- [Incidents.cs](Incidents.cs) — exception hierarchy for simulation incidents
+- [Enums.cs](Enums.cs) — operational and mission-related enums
+- [SelfDrivingCarSimulation.csproj](SelfDrivingCarSimulation.csproj) — project configuration
 
-| Folder / File | Responsibility |
-|---|---|
-| `Models/Car.cs` | Car entity: identity, range, battery, priority, status, and an append-only operational log. Validates its own invariants (`Validate()`). |
-| `Models/Enums.cs` | `OperationalStatus`, `MissionPriority`, `ControlRoomEventType`, `SeverityLevel`. |
-| `Exceptions/SimulationExceptions.cs` | `SimulationException` base + `CriticalBatteryException`, `NavigationErrorException`, `UnauthorizedOverrideException`, `CarDataValidationException`, `CarNotFoundException`. One consistent catch surface (`catch (SimulationException)`) is used everywhere incidents are handled, so the control system never crashes. |
-| `Events/AlertSystem.cs` | `ControlRoomAlertHandler` delegate + `AlertDispatcher` (raises alerts) + `ControlRoomMonitor` (a sample always-on subscriber that keeps history). Any number of independent listeners — GUI, logging, telemetry — can subscribe. |
-| `Services/FleetManager.cs` | Owns the live car collection; add/get/update/remove; LINQ-based querying (`GetCarsByStatus`, `GetPriorityMissions`, `GetLowBatteryCars`, `GetFleetSummary`); autonomous event methods (`CompleteRoute`, `EncounterObstacle`, `EnterRestrictedZone`); incident simulation (`SimulateIncident` + trigger helpers) that catches exceptions, updates car state/log, and raises a control-room alert. |
-| `UI/MainForm.cs` | The control panel: grid of cars (add/edit/remove/refresh), status filter, priority/low-battery queries, incident-simulation buttons, live fleet summary, and a live alert feed bound to `AlertDispatcher.OnAlert`. |
-| `UI/CarEditForm.cs` | Modal dialog for add/edit, with basic pre-flight validation before deeper `Car.Validate()` runs. |
+## Design notes
 
-### Why these choices
+### 1. DataAnnotations on the model
+The `Car` entity validates required fields, numeric ranges, and enum values by using `System.ComponentModel.DataAnnotations`.
 
-- **Validation lives on the entity** (`Car.Validate()`), so integrity rules
-  (range ≥ 0, battery 0–100, valid enum values) can never be bypassed
-  regardless of which code path creates or mutates a car.
-- **A single exception hierarchy** (`SimulationException`) lets every
-  incident — of whatever kind — be caught, logged, and turned into an alert
-  through one code path (`FleetManager.SimulateIncident`), rather than
-  scattering `try/catch` logic per incident type.
-- **Delegates/events, not direct calls**, connect the simulation to
-  "mission control." `FleetManager` has no idea the GUI exists — it just
-  raises `OnAlert`. This keeps the alerting mechanism reusable (e.g. a
-  logger or a remote telemetry client could subscribe too, unchanged).
-- **LINQ** is used for all fleet-wide queries and the summary/statistics
-  view, favoring expressive, declarative data operations over manual loops.
+This keeps data rules close to the model and avoids scattering validation logic across the UI.
+
+### 2. Incident handling through a shared exception hierarchy
+All simulation issues inherit from `SimulationException`, allowing the fleet manager to handle them uniformly through one catch path.
+
+This keeps the logic consistent for:
+
+- critical battery failures
+- navigation errors
+- restricted-zone entries
+- unauthorized overrides
+
+### 3. Event-based alert system
+The fleet raises alerts using a delegate-based event model rather than directly calling UI methods.
+
+This makes the alert system reusable and keeps the business logic independent from the presentation layer.
+
+### 4. Fleet queries with LINQ
+The fleet manager uses LINQ queries for status filtering, priority analysis, summary aggregation, and low-battery detection.
+
+This provides a clean, readable way to inspect and summarize fleet conditions.
+
+## Assignment requirement coverage
+
+This implementation addresses the requested assignment elements:
+
+- Car entity definition — implemented in [Car.cs](Car.cs)
+- Incident handling mechanism — implemented in [Incidents.cs](Incidents.cs) and [FleetManager.cs](FleetManager.cs)
+- Autonomous event delegation — implemented in [AlertSystem.cs](AlertSystem.cs)
+- Dynamic vehicle data management — implemented in [FleetManager.cs](FleetManager.cs)
+- User-centric control panel — implemented in [Program.cs](Program.cs)
+
+## Notes
+
+This version is structured as a multi-file WinForms project instead of a single monolithic source file, making the code easier to maintain and extend while preserving the same functionality.
