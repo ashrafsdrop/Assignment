@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+using System.Drawing;
 using System.Windows.Forms;
 using SelfDrivingCarSimulation;
 
@@ -54,6 +54,14 @@ public sealed class MainForm : Form
 		_fleetGrid.AutoGenerateColumns = true;
 		_fleetGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
 		_fleetGrid.SelectionChanged += (_, _) => ShowSelectedLog();
+		_fleetGrid.MouseDown += (_, e) =>
+		{
+			if (_fleetGrid.HitTest(e.X, e.Y).Type == DataGridViewHitTestType.None)
+			{
+				_fleetGrid.ClearSelection();
+				_fleetGrid.CurrentCell = null;
+			}
+		};
 		fleetTab.Controls.Add(_fleetGrid);
 		_alertList.Dock = DockStyle.Fill;
 		alertsTab.Controls.Add(_alertList);
@@ -122,7 +130,8 @@ public sealed class MainForm : Form
 	{
 		get
 		{
-			var id = _fleetGrid.CurrentRow?.Cells["CarId"].Value?.ToString();
+			if (_fleetGrid.SelectedRows.Count == 0) return null;
+			var id = _fleetGrid.SelectedRows[0].Cells["CarId"].Value?.ToString();
 			return id == null ? null : _fleetManager.GetCar(id);
 		}
 	}
@@ -172,6 +181,11 @@ public sealed class MainForm : Form
 		}
 		else
 		{
+			_modelInput.Text = "";
+			_rangeInput.Value = 400;
+			_batteryInput.Value = 75;
+			if (_priorityInput.Items.Count > 0) _priorityInput.SelectedIndex = 0;
+			if (_statusInput.Items.Count > 0) _statusInput.SelectedIndex = 0;
 			_logList.Items.Clear();
 		}
 	}
