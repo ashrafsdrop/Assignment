@@ -21,6 +21,8 @@ public sealed class MainForm : Form
 	private readonly ComboBox _statusInput = new();
 	private readonly ComboBox _statusFilter = new();
 
+	private const string DataFilePath = "fleet.json";
+
 	// Load a small fleet so the dashboard is useful immediately after startup.
 	private static void SeedDemoData(FleetManager fleetManager)
 	{
@@ -34,7 +36,17 @@ public sealed class MainForm : Form
 	{
 		_controlRoom = new ControlRoomMonitor(_fleetManager.Alerts);
 		_fleetManager.Alerts.OnAlert += (_, alert) => BeginInvoke(() => _alertList.Items.Add(alert.ToString()));
-		SeedDemoData(_fleetManager);
+		
+		if (System.IO.File.Exists(DataFilePath))
+		{
+			_fleetManager.LoadFromJson(DataFilePath);
+		}
+		else
+		{
+			SeedDemoData(_fleetManager);
+		}
+		
+		FormClosing += (_, _) => _fleetManager.SaveToJson(DataFilePath);
 		Text = "Self-Driving Car Simulation";
 		Size = new Size(1100, 700);
 		MinimumSize = new Size(900, 550);

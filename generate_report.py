@@ -49,7 +49,8 @@ toc_items = [
     "8. User-Centric Control Panel (GUI)",
     "9. Operational Safety, Reliability and Design Justification",
     "10. Testing Scenarios and Expected Results",
-    "11. Conclusion"
+    "11. Data Persistence (JSON)",
+    "12. Conclusion"
 ]
 for item in toc_items:
     doc.add_paragraph(item)
@@ -74,7 +75,8 @@ data = [
     ("Incident handling", "Custom exceptions + safe-state logic", "Prevents crashes and moves unsafe cars to controlled states."),
     ("Event delegation", "AlertDispatcher + event notifications", "Sends route, obstacle, and restricted-zone alerts."),
     ("Dynamic data management", "FleetManager with LINQ queries", "Provides expressive filtering and real-time fleet summaries."),
-    ("User interface", "MainForm with TabControl & DataGridView", "Offers a user-centric dashboard to monitor and command the fleet.")
+    ("User interface", "MainForm with TabControl & DataGridView", "Offers a user-centric dashboard to monitor and command the fleet."),
+    ("Data Persistence", "System.Text.Json Serialization", "Saves and loads fleet data automatically to/from fleet.json.")
 ]
 for item in data:
     row_cells = table.add_row().cells
@@ -139,8 +141,14 @@ doc.add_paragraph("3. Filtering: Selecting a specific operational status from th
 doc.add_paragraph("4. Log Retention: Selecting a car from the grid will instantly populate the 'Operational logs' tab with that specific car's timestamped history.")
 doc.add_paragraph("[PLACE SCREENSHOT HERE: Operational Logs Tab]", style='Intense Quote')
 
-add_heading("11. Conclusion")
-doc.add_paragraph("The implemented Self-Driving Car Simulation successfully meets all requirements of the CSC 439 assignment. It demonstrates a robust grasp of object-oriented C# principles, including data annotations, custom exception hierarchies, delegate-driven event notifications, and dynamic LINQ queries, all wrapped within a responsive WinForms graphical user interface.")
+add_heading("11. Data Persistence (JSON)")
+doc.add_paragraph("To ensure the simulation state is not lost between sessions, robust data persistence was implemented using the native System.Text.Json library.")
+doc.add_paragraph("• Serialization/Deserialization: The FleetManager handles writing the active fleet state to a fleet.json file whenever the application is closed.", style='List Bullet')
+doc.add_paragraph("• State Restoration: Upon launching the application, the MainForm automatically checks for fleet.json. If it exists, the fleet, including each car's operational log and current status, is instantly restored. If not, the application falls back to seeding default demo data.", style='List Bullet')
+doc.add_paragraph("• JSON Integrity: The Car model's properties are fully compatible with JSON serialization, ensuring seamless translation from memory to disk.", style='List Bullet')
+
+add_heading("12. Conclusion")
+doc.add_paragraph("The implemented Self-Driving Car Simulation successfully meets all requirements of the CSC 439 assignment. It demonstrates a robust grasp of object-oriented C# principles, including data annotations, custom exception hierarchies, delegate-driven event notifications, dynamic LINQ queries, and JSON data persistence, all wrapped within a responsive WinForms graphical user interface.")
 
 add_heading("Appendix A. Core Class Implementation Overview")
 doc.add_paragraph("(Note: Full source code files are available in the project repository. Key snippets are highlighted here.)")

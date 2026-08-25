@@ -28,7 +28,8 @@
 8. User-Centric Control Panel (GUI)
 9. Operational Safety, Reliability and Design Justification
 10. Testing Scenarios and Expected Results
-11. Conclusion
+11. Data Persistence (JSON)
+12. Conclusion
 
 ---
 
@@ -45,6 +46,7 @@ The proposed solution is designed as a modular Windows Forms simulation applicat
 | Event delegation | `AlertDispatcher` + event notifications | Sends route, obstacle, and restricted-zone alerts. |
 | Dynamic data management | `FleetManager` with LINQ queries | Provides expressive filtering and real-time fleet summaries. |
 | User interface | `MainForm` with TabControl & DataGridView | Offers a user-centric dashboard to monitor and command the fleet. |
+| Data Persistence | `System.Text.Json` Serialization | Saves and loads fleet data automatically to/from `fleet.json`. |
 
 ## 3. Program Structure and Architecture
 The system is divided into clear functional components to ensure separation of concerns:
@@ -101,8 +103,14 @@ The application is designed around safety and reliability. By using a strict dom
 4. **Log Retention:** Selecting a car from the grid will instantly populate the "Operational logs" tab with that specific car's timestamped history.
 > **[PLACE SCREENSHOT HERE: Operational Logs Tab]**
 
-## 11. Conclusion
-The implemented Self-Driving Car Simulation successfully meets all requirements of the CSC 439 assignment. It demonstrates a robust grasp of object-oriented C# principles, including data annotations, custom exception hierarchies, delegate-driven event notifications, and dynamic LINQ queries, all wrapped within a responsive WinForms graphical user interface.
+## 11. Data Persistence (JSON)
+To ensure the simulation state is not lost between sessions, robust data persistence was implemented using the native `System.Text.Json` library. 
+* **Serialization/Deserialization:** The `FleetManager` handles writing the active fleet state to a `fleet.json` file whenever the application is closed. 
+* **State Restoration:** Upon launching the application, the `MainForm` automatically checks for `fleet.json`. If it exists, the fleet, including each car's operational log and current status, is instantly restored. If not, the application falls back to seeding default demo data.
+* **JSON Integrity:** The `Car` model's properties are fully compatible with JSON serialization, ensuring seamless translation from memory to disk.
+
+## 12. Conclusion
+The implemented Self-Driving Car Simulation successfully meets all requirements of the CSC 439 assignment. It demonstrates a robust grasp of object-oriented C# principles, including data annotations, custom exception hierarchies, delegate-driven event notifications, dynamic LINQ queries, and JSON data persistence, all wrapped within a responsive WinForms graphical user interface.
 
 ---
 

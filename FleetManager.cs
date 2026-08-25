@@ -25,6 +25,28 @@ public class FleetManager
 
 	public const double LowBatteryThreshold = 20.0;
 
+	public void SaveToJson(string filePath)
+	{
+		var options = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
+		var json = System.Text.Json.JsonSerializer.Serialize(_fleet.Values.ToList(), options);
+		System.IO.File.WriteAllText(filePath, json);
+	}
+
+	public void LoadFromJson(string filePath)
+	{
+		if (!System.IO.File.Exists(filePath)) return;
+		var json = System.IO.File.ReadAllText(filePath);
+		var cars = System.Text.Json.JsonSerializer.Deserialize<List<Car>>(json);
+		if (cars != null)
+		{
+			_fleet.Clear();
+			foreach (var car in cars)
+			{
+				_fleet[car.CarId] = car;
+			}
+		}
+	}
+
 	public IReadOnlyCollection<Car> Cars => _fleet.Values;
 
 	public string GenerateCarId()

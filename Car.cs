@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace SelfDrivingCarSimulation;
 
@@ -10,7 +11,7 @@ namespace SelfDrivingCarSimulation;
 public class Car
 {
 	[Required]
-	public string CarId { get; }
+	public string CarId { get; set; }
 
 	[Required]
 	public string ModelName { get; set; }
@@ -27,8 +28,9 @@ public class Car
 	[EnumDataType(typeof(OperationalStatus))]
 	public OperationalStatus Status { get; set; }
 
-	private readonly List<string> _operationalLog = new();
-	public IReadOnlyList<string> OperationalLog => _operationalLog.AsReadOnly();
+	public List<string> OperationalLog { get; set; } = new();
+
+	public Car() { }
 
 	public Car(string carId, string modelName, double operationalRangeKm, double batteryLevelPercent,
 		MissionPriority priority, OperationalStatus status = OperationalStatus.Idle)
@@ -71,7 +73,7 @@ public class Car
 	/// </summary>
 	public void LogEvent(string message)
 	{
-		_operationalLog.Add($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}");
+		OperationalLog.Add($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}");
 	}
 
 	public override string ToString() =>
